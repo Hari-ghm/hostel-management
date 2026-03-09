@@ -90,6 +90,9 @@ const deleteComplaint = async (req, res) => {
   }
 };
 
+const User = require('../models/User');
+const Room = require('../models/Room');
+
 // @desc    Get stats
 // @route   GET /api/stats
 const getStats = async (req, res) => {
@@ -115,8 +118,35 @@ const getStats = async (req, res) => {
     categoryCounts.forEach(c => {
       byCategory[c._id] = c.count;
     });
+    
+    // Additional real stats for Dashboard
+    const totalStudents = await User.countDocuments({ role: 'Student' });
+    
+    // Count occupied rooms vs total capacity
+    const rooms = await Room.find();
+    let occupiedRooms = 0;
+    rooms.forEach(r => {
+      if (r.occupants && r.occupants.length > 0) occupiedRooms++;
+    });
+    const totalRooms = rooms.length;
+    
+    // Resolved this week (simple mock logic or actual date logic)
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - 7);
+    const resolvedThisWeek = await Complaint.countDocuments({ 
+      status: 'resolved', 
+      updatedAt: { $gte: startOfWeek } 
+    });
 
-    res.json({ total, byStatus, byCategory });
+    res.json({ 
+      total, 
+      byStatus, 
+      byCategory,
+      totalStudents,
+      occupiedRooms,
+      totalRooms,
+      resolvedThisWeek
+    });
   } catch (error) {
     res.status(500).json({ error: 'Server Error', message: error.message });
   }

@@ -9,5 +9,8 @@
     "dev:client": "cd client && npm run dev",
     "start": "cd server && node index.js"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "lucide-react": "^0.577.0"
+  }
 }
